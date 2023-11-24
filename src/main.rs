@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use shuttle_poise::ShuttlePoise;
 use dotenv::dotenv;
 use poise::serenity_prelude::{self as serenity, GuildContainer, PartialGuild, Guild};
 
@@ -110,8 +111,8 @@ async fn mine_healthcheck(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-#[tokio::main]
-async fn main() {
+#[shuttle_runtime::main]
+async fn poise() -> ShuttlePoise<Data, Error> {
     dotenv().ok();
 
     let commands = vec![age(), mine_healthcheck()];
@@ -128,7 +129,7 @@ async fn main() {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {})
             })
-        });
+        }).build().await.map_err(shuttle_runtime::CustomError::new)?;
 
-    framework.run().await.unwrap();
+Ok(framework.into())
 }
